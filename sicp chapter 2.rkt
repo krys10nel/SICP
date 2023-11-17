@@ -503,3 +503,82 @@
 
 ;--- 2.20 -----------------------------------------
 
+(define (same-parity . rest)
+  (define (parity rest test)
+    (if (null? rest)
+        (list)
+        (if (test (car rest))
+            (cons (car rest) (parity (cdr rest) test))
+            (parity (cdr rest) test))))
+  (if (even? (car rest))
+      (parity rest even?)
+      (parity rest odd?)))
+
+;--- 2.21 -----------------------------------------
+
+(define (square-list items)
+  (if (null? items)
+      '()
+      (cons (square (car items)) (square-list (cdr items)))))
+
+(define (square-list-alt items)
+  (map square items))
+
+(define (map proc items)
+  (if (null? items)
+      '()
+      (cons (proc (car items))
+            (map proc (cdr items)))))
+
+;--- 2.22 -----------------------------------------
+
+(define (square-list-wrong items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons (square (car things))
+                    answer))))
+  (iter items '()))
+
+; 1) (iter (2 3 4)
+;          (cons (1) '()))
+; 2) (iter (3 4)
+;          (cons (4) (cons (1) '())))
+; 3) (iter (4)
+;          (cons (9) (cons (4) (cons (1) '())))) 
+; 4) (iter '()
+;          (cons (16) (cons (9) (cons (4) (cons (1) '())))))
+
+; answer: (cons (16) (cons (9) (cons (4) (cons (1) '()))))) = (16 9 4 1)
+; the (cons) inside the iter puts the current squared number in to the car
+; position, and the previous answer in the cdr position as it iterates through
+; all the numbers
+
+(define (square-list-wrong2 items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons answer
+                    (square (car things))))))
+  (iter items '()))
+
+; 1) (iter (2 3 4)
+;          (cons '() 1))
+; 2) (iter (3 4)
+;          (cons (cons '() 1) 4))
+; 3) (iter (4)
+;          (cons (cons (cons '() 1) 4) 9))
+; 4) (iter '()
+;          (cons (cons (cons (cons '() 1) 4) 9) 16))
+
+; constructs (((('() , 1) , 4) , 9) , 16)
+; car position on constructs point to previous constructs,
+; the order is correct but previous constructs become nested in list form
+
+;--- 2.23 -----------------------------------------
+
+(for-each
+ (lambda (x) (newline) (display x))
+ (list 57 321 88))
