@@ -579,6 +579,79 @@
 
 ;--- 2.23 -----------------------------------------
 
-(for-each
- (lambda (x) (newline) (display x))
- (list 57 321 88))
+(define (for-each proc items)
+ (cond ((not (null? items))
+        (proc (car items))
+        (for-each proc (cdr items)))))
+
+;--- 2.24 -----------------------------------------
+
+(define (count-leaves x)
+  (cond ((null? x) 0)
+        ((not (pair? x)) 1)
+        (else (+ (count-leaves (car x))
+                 (count-leaves (cdr x))))))
+
+; evaluates (list 1 (list 2 (list 3 4))) as 4
+; box and pointer:
+; |1|*|->|v|/|                (1 (2...) null)
+;        |2|*|->|v|/|         (2 (3 4) null)
+;               |3|*|->|4|/|  (3 4 null)
+; tree:
+; (1 (2 (3 4)))
+;   .
+;  / \
+; 1   . (2 (3 4))
+;    / \
+;   2   . (3 4)
+;      / \
+;     3   4
+
+;--- 2.25 -----------------------------------------
+
+(define list1 (list 1 3 (list 5 7) 9))
+(define list2 (list (list 7)))
+(define list3 (list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7)))))))
+
+; pick 7 using car and cdr
+; list1: (car (cdr (car (cdr (cdr list1))))) or (car (cdaddr list1))
+; list2: (car (car list2)) or (caar list2)
+; list3: (cadr (cadr (cadr (cadr (cadr (cadr list3))))))
+;        or (cadadr (cadadr (cadadr list3)))
+; any combination past cxxxxr is undefined and needs to be separated
+
+;--- 2.26 -----------------------------------------
+
+(define x (list 1 2 3))
+(define y (list 4 5 6))
+
+; (append x y) = (1 2 3 4 5 6)
+;                |1|*|->|2|*|->|3|*|->|4|*|->|5|*|->|6|/|
+; (cons x y) = ((1 2 3) 4 5 6)
+;              |v|*|->|4|*|->|5|*|->|6|*|
+;              |1|*|->|2|*|->|3|/|
+; (list x y) = ((1 2 3) (4 5 6))
+;              |v|*|--------------->|v|*|
+;              |1|*|->|2|*|->|3|/|  |4|*|->|5|*|->|6|/|
+
+;--- 2.27 -----------------------------------------
+
+(define z (list (list 1 2) (list 3 4)))
+
+(define (deep-reverse list)
+  (define (iter items result)
+    (cond ((null? items)
+           result)
+          ((not (pair? (car items)))
+           (iter (cdr items) (cons (car items) result)))
+          (else
+           (iter (cdr items) (cons (deep-reverse (car items)) result)))))
+  (iter list '()))
+
+; new regular reverse based on deep-reverse above
+(define (reverse-reg list)
+  (define (iter items result)
+    (if (null? items)
+        result
+        (iter (cdr items) (cons (car items) result))))
+  (iter list '()))
