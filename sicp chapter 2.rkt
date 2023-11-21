@@ -655,3 +655,100 @@
         result
         (iter (cdr items) (cons (car items) result))))
   (iter list '()))
+
+;--- 2.28 -----------------------------------------
+
+(define treelist (list (list 1 2) (list 3 4)))
+
+(define (fringe tree)
+  (if (null? tree)
+      '()
+      (let ((first (car tree)))
+        (if (not (pair? first))
+            (cons first (fringe (cdr tree)))
+            (append (fringe first) (fringe (cdr tree)))))))
+
+;--- 2.29 -----------------------------------------
+
+(define (make-mobile left right)
+  (list left right))
+
+(define (make-branch length structure)
+  (list length structure))
+
+(define (left-branch mobile)
+  (car mobile))
+
+(define (right-branch mobile)
+  (car (cdr mobile)))
+
+(define (branch-length mobile)
+  (car mobile))
+
+(define (branch-structure mobile)
+  (car (cdr mobile)))
+
+; structure of a mobile as a list
+; >> cad of branch is always length
+; >> cdr of brach is either weight or mobile
+; (l-branch         r-branch)
+; ((length weight) (length (l-branch r-branch))))
+
+; mobile
+;  |*|*| ---------> |*|/|
+;   |                |
+;   v l-branch       v r-branch
+; |*|*| -> |*|/|   |*|*| -> |*|/|
+;  |        |       |        |
+;  v        v       v        v
+; len     weight   len     mobile
+;        (struct)         (struct)
+
+; If we assume left-/right-branch branch-struct is always weight,
+; to access the weights, select left-/right-branch, the select branch-structure
+; and add them together for total-weight. 
+
+; (define (total-weight mobile)
+;   (+ (branch-structure (left-branch mobile))
+;      (branch-structure (right-branch mobile))))
+
+; when branch-structure is another mobile (a PAIR), we need to keep traversing
+; left-/right-branch branch-structs until weight is found by passing in the
+; mobile branch-structure back into total-weight:
+
+; (define (total-weight mobile)
+;   (+ (total-weight (branch-structure (left-branch mobile)))
+;      (total-weight (branch-structure (right-branch mobile)))))
+
+; We can use (not (pair? mobile)) = weight? to check if the branch-struct
+; being passed in is NOT a mobile (PAIR) but instead a weight (NON-PAIR).
+; If it is a weight, we return "mobile" so it can be used used by (+):
+
+; (define (total-weight mobile)
+;   (if (weight? mobile)
+;       mobile
+;       (+ (total-weight (branch-structure (left-branch mobile)))
+;          (total-weight (branch-structure (right-branch mobile))))))
+
+(define weight?
+  (lambda (x) (not (pair? x))))
+
+; Finally, we need to check if mobile is an empty list with (null? mobile)
+; and return null if it is empty:
+
+(define (total-weight mobile)
+  (cond ((null? mobile)
+         '())
+        ((weight? mobile)
+         mobile)
+        (else
+         (+ (total-weight (branch-structure (left-branch mobile)))
+            (total-weight (branch-structure (right-branch mobile)))))))
+
+; sample mobile, total-weight: 21
+
+(define m1 (make-mobile
+            (make-branch 4 6)
+            (make-branch 5 (make-mobile
+                            (make-branch 3 7)
+                            (make-branch 9 8)))))
