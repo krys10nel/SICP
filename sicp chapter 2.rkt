@@ -691,7 +691,7 @@
 ; structure of a mobile as a list
 ; >> cad of branch is always length
 ; >> cdr of brach is either weight or mobile
-; (l-branch         r-branch)
+; (list l-branch r-branch)
 ; ((length weight) (length (l-branch r-branch))))
 
 ; mobile
@@ -752,3 +752,103 @@
             (make-branch 5 (make-mobile
                             (make-branch 3 7)
                             (make-branch 9 8)))))
+
+; structure of mobile using cons
+; (cons l-branch r-branch)
+; ((len weight) (len (l-branch r-branch)))
+;
+; mobile        r-branch
+; |*|*| ------------> |*|*| -> mobile
+;  |                   |
+;  v l-branch          v
+; |*|*| -> weight     len
+;  |
+;  v
+; len
+
+(define (make-mobile-cons left right)
+  (cons left right))
+
+(define (make-branch-cons length structure)
+  (cons length structure))
+
+(define (l-branch mobile)
+  (car mobile))
+
+(define (r-branch mobile)
+  (cdr mobile))
+
+(define (branch-len mobile)
+  (car mobile))
+
+(define (branch-struct mobile)
+  (cdr mobile))
+
+; only changes to the r-branch and branch-struct are needed, total-weight
+; functions normally without any changes
+
+(define (total-weight-cons mobile)
+  (cond ((null? mobile)
+         '())
+        ((weight? mobile)
+         mobile)
+        (else
+         (+ (total-weight-cons (branch-structure (left-branch mobile)))
+            (total-weight-cons (branch-structure (right-branch mobile)))))))
+
+;--- 2.30 -----------------------------------------
+
+(define (scale-tree tree factor)
+  (cond ((null? tree) '())
+        ((not (pair? tree))
+         (* tree factor))
+        (else
+         (cons (scale-tree (car tree)
+                           factor)
+               (scale-tree (cdr tree)
+                           factor)))))
+
+(define (scale-tree-alt tree factor)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (scale-tree-alt sub-tree factor)
+             (* sub-tree factor)))
+       tree))
+
+(define (square-tree-map tree)
+  (map (lambda (sub-tree)
+         (cond ((null? sub-tree)
+                '())
+               ((not (pair? sub-tree))
+                (square sub-tree))
+               (else (square-tree-map sub-tree))))
+       tree))
+
+(define (square-tree-recur tree)
+  (cond ((null? tree)
+         '())
+        ((not (pair? tree))
+         (square tree))
+        (else (cons (square-tree-recur (car tree))
+                    (square-tree-recur (cdr tree))))))
+
+; sample list
+
+(define l1 (list 1 (list 2 (list 3 4) 5) (list 6 7)))
+
+;--- 2.31 -----------------------------------------
+
+(define (square-tree2 tree)
+  (tree-map square tree))
+
+(define (tree-map proc tree)
+  (map (lambda (x)
+         (cond ((null? x)
+                '())
+               ((not (pair? x))
+                (proc x))
+               (else (tree-map proc x))))
+       tree))
+
+;--- 2.32 -----------------------------------------
+
